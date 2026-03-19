@@ -1,22 +1,56 @@
 {
   "name": "mcpcard",
   "version": "0.1.0",
-  "description": "Generate MCP Server Cards per SEP-1649",
+  "description": "Generate MCP Server Cards per SEP-1649 — let clients discover your server without connecting.",
   "license": "MIT",
+  "author": "Avinash Chaubey",
+  "homepage": "https://github.com/avinashchaubey/mcpcard#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/avinashchaubey/mcpcard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/avinashchaubey/mcpcard/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "server-card",
+    "sep-1649",
+    "cli",
+    "introspection",
+    "metadata"
+  ],
+  "type": "module",
   "bin": {
     "mcpcard": "./bin/mcpcard.js"
   },
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-    "./middleware": "./dist/serve/middleware.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./middleware": {
+      "types": "./dist/serve/middleware.d.ts",
+      "import": "./dist/serve/middleware.js"
+    }
   },
-  "type": "module",
+  "files": [
+    "dist",
+    "bin",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
-    "dev": "tsup --watch"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",

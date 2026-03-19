@@ -1,0 +1,8 @@
+src/
+tests/
+tsconfig.json
+tsup.config.ts
+.gitignore
+.well-known/
+coverage/
+*.test.ts

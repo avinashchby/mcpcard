@@ -1,101 +1,115 @@
 # mcpcard
 
-Generate [MCP Server Cards](https://spec.modelcontextprotocol.io) per the **SEP-1649** specification.
+**Make your MCP server discoverable without a single connection.**
 
-MCP Server Cards expose structured metadata at `/.well-known/mcp/server-card.json`, letting clients, registries, and crawlers discover your server's capabilities **without connecting**.
+[![npm version](https://img.shields.io/npm/v/mcpcard)](https://www.npmjs.com/package/mcpcard)
+[![license](https://img.shields.io/npm/l/mcpcard)](./LICENSE)
+[![node](https://img.shields.io/node/v/mcpcard)](https://nodejs.org)
 
-## Quick Start
+`mcpcard` generates [MCP Server Cards](https://spec.modelcontextprotocol.io) per the **SEP-1649** specification. A server card is a static JSON file at `/.well-known/mcp/server-card.json` that describes your server's tools, resources, prompts, transport, and auth — so clients, registries, and crawlers can discover what you offer without ever connecting.
+
+## Quickstart
 
 ```bash
-# Scan your MCP server's source code
 npx mcpcard scan ./my-server
-
-# Introspect a running server
-npx mcpcard live --command "node server.js"
-
-# Validate an existing card
-npx mcpcard validate server-card.json
-
-# Serve a card locally
-npx mcpcard serve server-card.json
+# => .well-known/mcp/server-card.json
 ```
 
-## Installation
+That's it. One command, one file, full discoverability.
+
+## Why This Exists
+
+MCP servers are invisible until a client connects and runs the handshake. That means:
+
+- **Registries can't index you** without spawning your server
+- **Clients can't show your capabilities** before the user connects
+- **Crawlers have nothing to parse** — your tools/resources are locked behind a protocol
+
+Server Cards fix this. They're the `robots.txt` of MCP — a static, well-known file that says "here's what I do" without requiring a live connection.
+
+`mcpcard` generates that file from your source code, a running server, or validates one you wrote by hand.
+
+## Install
 
 ```bash
 npm install -g mcpcard    # global CLI
-npm install mcpcard       # local + middleware
+npm install mcpcard       # local dependency + Express middleware
 ```
 
-## CLI Commands
+Or just use `npx mcpcard` — no install needed.
 
-### `scan` — Generate card from source code
+## CLI
+
+### `scan` — Generate a card from source code
 
 ```bash
 npx mcpcard scan ./my-server
-npx mcpcard scan ./my-server --output ./card.json
+npx mcpcard scan ./my-server -o ./card.json
 npx mcpcard scan ./my-server --verbose
 ```
 
-Parses TypeScript and Python MCP servers. Detects:
-- `server.tool()`, `server.resource()`, `server.prompt()` (TS/JS)
-- `@mcp.tool()`, `@mcp.resource()`, `@mcp.prompt()` decorators (Python)
-- Transport configuration (`StdioServerTransport`, `SSEServerTransport`, etc.)
-- Server name and version from `McpServer()` constructor or `FastMCP()`
+Statically analyzes your TypeScript or Python MCP server. Detects:
+
+| Pattern | Language |
+|---------|----------|
+| `server.tool()` / `server.resource()` / `server.prompt()` | TypeScript/JS |
+| `@mcp.tool()` / `@mcp.resource()` / `@mcp.prompt()` | Python |
+| `new StdioServerTransport()` / `new SSEServerTransport()` | TypeScript/JS |
+| `FastMCP("name")` / `McpServer({ name, version })` | Both |
 
 ### `live` — Introspect a running server
 
 ```bash
-# Via stdio (spawns the process)
+# stdio — spawns the process for you
 npx mcpcard live --command "node server.js"
 npx mcpcard live -c "python server.py"
 
-# Via HTTP
+# HTTP — connects to a remote server
 npx mcpcard live --url https://example.com/mcp
 npx mcpcard live -u http://localhost:8080/mcp
 ```
 
-Connects to the server, runs the MCP handshake, and calls `tools/list`, `resources/list`, and `prompts/list` to build the card.
+Connects via MCP protocol, runs `initialize` + `tools/list` + `resources/list` + `prompts/list`, and writes the card. Use this when static analysis misses something, or when you don't have source access.
 
-### `validate` — Validate a server card
+### `validate` — Check a card against the schema
 
 ```bash
 npx mcpcard validate server-card.json
+# exit 0 = valid, exit 1 = errors printed
 ```
 
-Validates against the SEP-1649 JSON Schema. Exits `0` if valid, `1` with error details if not.
-
-### `serve` — Serve a card locally
+### `serve` — Host a card locally
 
 ```bash
 npx mcpcard serve server-card.json
 npx mcpcard serve server-card.json --port 8080
+# => http://localhost:3000/.well-known/mcp/server-card.json
 ```
 
-Starts an HTTP server at `http://localhost:3000/.well-known/mcp/server-card.json`.
+## Add a Server Card in 30 Seconds
 
-## Add a Server Card to Your MCP Server in 30 Seconds
-
-### Option 1: Generate and serve statically
+**Option A** — Generate from source:
 
 ```bash
 npx mcpcard scan ./my-server
-# Creates .well-known/mcp/server-card.json
-# Copy this file to your server's public directory
+# Deploy .well-known/mcp/server-card.json with your server
 ```
 
-### Option 2: Use the Express middleware
+**Option B** — Express middleware (zero files):
 
 ```typescript
 import express from 'express';
 import { mcpCardMiddleware } from 'mcpcard/middleware';
 
 const app = express();
-
-// Serve from a file (re-reads on each request)
 app.use(mcpCardMiddleware('./server-card.json'));
+app.listen(3000);
+// => GET /.well-known/mcp/server-card.json
+```
 
-// Or serve a card object directly
+You can also pass a card object directly:
+
+```typescript
 app.use(mcpCardMiddleware({
   name: 'my-server',
   version: '1.0.0',
@@ -104,14 +118,12 @@ app.use(mcpCardMiddleware({
   protocol_version: '2025-11-05',
   tools: [{ name: 'hello', description: 'Say hello' }]
 }));
-
-app.listen(3000);
 ```
 
-### Option 3: Generate from a running server
+**Option C** — Generate from a running server:
 
 ```bash
-npx mcpcard live --command "node my-server.js" --output .well-known/mcp/server-card.json
+npx mcpcard live -c "node my-server.js" -o .well-known/mcp/server-card.json
 ```
 
 ## Server Card Format (SEP-1649)
@@ -135,7 +147,7 @@ npx mcpcard live --command "node my-server.js" --output .well-known/mcp/server-c
   "capabilities": {
     "tools": true,
     "resources": true,
-    "prompts": false
+    "prompts": true
   },
   "tools": [
     {
@@ -152,7 +164,12 @@ npx mcpcard live --command "node my-server.js" --output .well-known/mcp/server-c
       "description": "Repository README"
     }
   ],
-  "prompts": [],
+  "prompts": [
+    {
+      "name": "summarize",
+      "description": "Summarize an issue"
+    }
+  ],
   "protocol_version": "2025-11-05"
 }
 ```
@@ -163,17 +180,14 @@ npx mcpcard live --command "node my-server.js" --output .well-known/mcp/server-c
 import { buildCard, validateCard } from 'mcpcard';
 import type { ServerCard, McpTool } from 'mcpcard';
 
-// Build a card
 const card = buildCard({
   name: 'my-server',
   description: 'Does things',
   tools: [{ name: 'hello', description: 'Say hello' }]
 });
 
-// Validate a card
 const result = validateCard(card);
-console.log(result.valid);    // true
-console.log(result.errors);   // []
+// { valid: true, errors: [] }
 ```
 
 ## License

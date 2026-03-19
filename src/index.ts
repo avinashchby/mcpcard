@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * mcpcard CLI entry point and public API.
  * Generate, validate, and serve MCP Server Cards per SEP-1649.

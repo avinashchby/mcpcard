@@ -8,7 +8,10 @@ const DEFAULT_PORT = 3000;
 
 /** Handle returned by startServer for clean shutdown. */
 export interface ServerHandle {
+  /** Stop the server. */
   close(): void;
+  /** The port the server is listening on. */
+  port: number;
 }
 
 /**
@@ -31,10 +34,14 @@ export async function startServer(
   const cardUrl = `${url}/.well-known/mcp/server-card.json`;
   info(`Server card available at ${cardUrl}`);
 
+  const addr = server.address();
+  const actualPort = typeof addr === 'object' && addr ? addr.port : resolvedPort;
+
   return {
     close() {
       server.close();
     },
+    port: actualPort,
   };
 }
 
