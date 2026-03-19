@@ -1,0 +1,180 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mcpcard.dev/schemas/server-card.json",
+  "title": "MCP Server Card",
+  "description": "MCP Server Card per SEP-1649",
+  "type": "object",
+  "required": ["name", "version", "description", "capabilities", "protocol_version"],
+  "additionalProperties": true,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable name of the MCP server"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Version of the server card"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable description of what the server does"
+    },
+    "homepage": {
+      "type": "string",
+      "description": "URL to the server's homepage or documentation"
+    },
+    "transport": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["stdio", "streamable-http", "sse"],
+          "description": "Transport protocol type"
+        },
+        "url": {
+          "type": "string",
+          "description": "URL for HTTP-based transports"
+        },
+        "command": {
+          "type": "string",
+          "description": "Command to launch the server (stdio transport)"
+        },
+        "args": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Arguments for the launch command"
+        }
+      }
+    },
+    "authentication": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["oauth2", "api-key", "none"],
+          "description": "Authentication mechanism"
+        },
+        "authorization_url": {
+          "type": "string",
+          "description": "OAuth2 authorization endpoint"
+        },
+        "token_url": {
+          "type": "string",
+          "description": "OAuth2 token endpoint"
+        },
+        "scopes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "OAuth2 scopes required"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tools": {
+          "type": "boolean",
+          "description": "Whether the server exposes tools"
+        },
+        "resources": {
+          "type": "boolean",
+          "description": "Whether the server exposes resources"
+        },
+        "prompts": {
+          "type": "boolean",
+          "description": "Whether the server exposes prompts"
+        }
+      }
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "additionalProperties": true,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "inputSchema": {
+            "type": "object"
+          },
+          "annotations": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["uri", "name"],
+        "additionalProperties": true,
+        "properties": {
+          "uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "prompts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": true,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "arguments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name"],
+              "additionalProperties": false,
+              "properties": {
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "required": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "protocol_version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "MCP protocol version the server implements"
+    }
+  }
+}

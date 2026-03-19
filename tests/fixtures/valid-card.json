@@ -1,0 +1,41 @@
+{
+  "name": "example-mcp-server",
+  "version": "1.0.0",
+  "description": "An example MCP server for testing",
+  "homepage": "https://example.com",
+  "transport": {
+    "type": "stdio",
+    "command": "node",
+    "args": ["server.js"]
+  },
+  "authentication": {
+    "type": "none"
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": true,
+    "prompts": false
+  },
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get weather for a location",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "location": { "type": "string" }
+        },
+        "required": ["location"]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "file:///config.json",
+      "name": "config",
+      "description": "Server configuration",
+      "mimeType": "application/json"
+    }
+  ],
+  "protocol_version": "2025-11-05"
+}

@@ -1,0 +1,8 @@
+{
+  "version": "1.0.0",
+  "description": "Missing name field",
+  "capabilities": {
+    "tools": false
+  },
+  "protocol_version": "2025-11-05"
+}
